@@ -6,6 +6,8 @@ import com.mysql.cj.jdbc.StatementImpl;
 import lombok.AllArgsConstructor;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
 
@@ -18,9 +20,9 @@ public class CardDAO {
     private Connection connection;
 
     public CardEntity insert(final CardEntity entity) throws SQLException {
-        var sql = "INSERT INTO CARDS (title, description, board_column_id) values (?, ?, ?);";
-        try(var statement = connection.prepareStatement(sql)){
-            var i = 1;
+        String sql = "INSERT INTO CARDS (title, description, board_column_id) values (?, ?, ?);";
+        try(PreparedStatement statement = connection.prepareStatement(sql)){
+            int i = 1;
             statement.setString(i ++, entity.getTitle());
             statement.setString(i ++, entity.getDescription());
             statement.setLong(i, entity.getBoardColumn().getId());
@@ -33,9 +35,9 @@ public class CardDAO {
     }
 
     public void moveToColumn(final Long columnId, final Long cardId) throws SQLException{
-        var sql = "UPDATE CARDS SET board_column_id = ? WHERE id = ?;";
-        try(var statement = connection.prepareStatement(sql)){
-            var i = 1;
+        String sql = "UPDATE CARDS SET board_column_id = ? WHERE id = ?;";
+        try(PreparedStatement statement = connection.prepareStatement(sql)){
+            int i = 1;
             statement.setLong(i ++, columnId);
             statement.setLong(i, cardId);
             statement.executeUpdate();
@@ -43,7 +45,7 @@ public class CardDAO {
     }
 
     public Optional<CardDetailsDTO> findById(final Long id) throws SQLException {
-        var sql =
+        String sql =
                 """
                 SELECT c.id,
                        c.title,
@@ -63,12 +65,12 @@ public class CardDAO {
                     ON bc.id = c.board_column_id
                   WHERE c.id = ?;
                 """;
-        try(var statement = connection.prepareStatement(sql)){
+        try(PreparedStatement statement = connection.prepareStatement(sql)){
             statement.setLong(1, id);
             statement.executeQuery();
-            var resultSet = statement.getResultSet();
+            ResultSet resultSet = statement.getResultSet();
             if (resultSet.next()){
-                var dto = new CardDetailsDTO(
+                CardDetailsDTO dto = new CardDetailsDTO(
                         resultSet.getLong("c.id"),
                         resultSet.getString("c.title"),
                         resultSet.getString("c.description"),
